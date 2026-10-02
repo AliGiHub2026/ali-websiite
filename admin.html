@@ -60,7 +60,7 @@
             const video_url = document.getElementById('videoUrl').value;
             const thumbnail_url = document.getElementById('thumbUrl').value;
 
-            const { data, error } = await supabase
+            const { data, error } = await _supabase
                 .from('episodes')
                 .insert([{ series_name, title, video_url, thumbnail_url }]);
 

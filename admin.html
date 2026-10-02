@@ -60,19 +60,23 @@
             const video_url = document.getElementById('videoUrl').value;
             const thumbnail_url = document.getElementById('thumbUrl').value;
 
-            const { data, error } = await _supabase
-                .from('episodes')
-                .insert([{ series_name, title, video_url, thumbnail_url }]);
+            try {
+                const { data, error } = await supabaseClient
+                    .from('episodes')
+                    .insert([{ series_name, title, video_url, thumbnail_url }]);
 
-            if (error) {
-                status.style.color = '#ef4444';
-                status.textContent = 'حدث خطأ أثناء الحفظ: ' + error.message;
-            } else {
+                if (error) throw error;
+
                 status.style.color = '#22c55e';
                 status.textContent = 'تم إدراج الحلقة بنجاح!';
                 document.getElementById('addEpisodeForm').reset();
+            } catch (error) {
+                console.error('Supabase error:', error);
+                status.style.color = '#ef4444';
+                status.textContent = 'حدث خطأ أثناء الحفظ: ' + (error.message || error);
+            } finally {
+                btn.disabled = false;
             }
-            btn.disabled = false;
         };
     </script>
 </body>

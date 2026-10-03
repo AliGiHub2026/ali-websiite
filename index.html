@@ -58,7 +58,7 @@
         async function loadEpisodes() {
             const container = document.getElementById('playlistContainer');
             
-            const { data: episodes, error } = await supabase
+            const { data: episodes, error } = await supabaseClient
                 .from('episodes')
                 .select('*')
                 .order('created_at', { ascending: false });

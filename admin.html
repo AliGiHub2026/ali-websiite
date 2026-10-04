@@ -32,9 +32,29 @@
                 <input type="text" id="epTitle" placeholder="مثال: الحلقة 1" required>
             </div>
             <div class="input-group">
-                <label>رابط مَلف الفيديو المباشر (MP4):</label>
-                <input type="url" id="videoUrl" placeholder="https://domain.com/video.mp4" required>
-            </div>
+    <label>رابط الفيديو الأساسي (MP4):</label>
+    <input type="url" id="videoUrl" placeholder="رابط الفيديو الأساسي" required>
+</div>
+
+<div class="input-group">
+    <label>رابط جودة 240p:</label>
+    <input type="url" id="video240p" placeholder="رابط فيديو 240p">
+</div>
+
+<div class="input-group">
+    <label>رابط جودة 360p:</label>
+    <input type="url" id="video360p" placeholder="رابط فيديو 360p">
+</div>
+
+<div class="input-group">
+    <label>رابط جودة 480p:</label>
+    <input type="url" id="video480p" placeholder="رابط فيديو 480p">
+</div>
+            
+    <div class="input-group">
+    <label>رابط جودة 720p:</label>
+    <input type="url" id="video720p" placeholder="رابط فيديو 720p">
+</div>
             <div class="input-group">
                 <label>رابط الصورة المصغرة (Thumbnail):</label>
                 <input type="url" id="thumbUrl" placeholder="https://domain.com/image.jpg">
@@ -55,15 +75,30 @@
             status.style.color = '#38bdf8';
             status.textContent = 'جاري الحفظ...';
 
-            const series_name = document.getElementById('seriesName').value;
-            const title = document.getElementById('epTitle').value;
-            const video_url = document.getElementById('videoUrl').value;
-            const thumbnail_url = document.getElementById('thumbUrl').value;
+          const series_name = document.getElementById('seriesName').value;
+  const title = document.getElementById('epTitle').value;
+  const video_url = document.getElementById('videoUrl').value;
 
-            try {
-                const { data, error } = await supabaseClient
-                    .from('episodes')
-                    .insert([{ series_name, title, video_url, thumbnail_url }]);
+  const video_240p = document.getElementById('video240p').value;
+  const video_360p = document.getElementById('video360p').value;
+  const video_480p = document.getElementById('video480p').value;
+  const video_720p = document.getElementById('video720p').value;
+
+  const thumbnail_url = document.getElementById('thumbUrl').value;
+
+try {
+    const { data, error } = await supabaseClient
+        .from('episodes')
+        .insert([{
+            series_name,
+            title,
+            video_url,
+            video_240p,
+            video_360p,
+            video_480p,
+            video_720p,
+            thumbnail_url
+        }]);
 
                 if (error) throw error;
 

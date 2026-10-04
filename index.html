@@ -5,7 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة المسلسلات القصيرة</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
+   <style>
+    .video-wrapper {
+    position: relative;
+}
+
+.quality-control {
+    position: absolute;
+    bottom: 55px;
+    left: 15px;
+    z-index: 10;
+}
+
+#qualityBtn {
+    background: rgba(15, 23, 42, 0.9);
+    color: white;
+    border: 1px solid #475569;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#qualityBtn:hover {
+    background: #334155;
+}
+
+.quality-menu {
+    display: none;
+    position: absolute;
+    bottom: 45px;
+    left: 0;
+    background: #1e293b;
+    border: 1px solid #475569;
+    border-radius: 8px;
+    min-width: 120px;
+    overflow: hidden;
+}
+
+.quality-menu button {
+    display: block;
+    width: 100%;
+    padding: 9px 12px;
+    background: transparent;
+    color: white;
+    border: none;
+    text-align: center;
+    cursor: pointer;
+}
+
+.quality-menu button:hover {
+    background: #334155;
+}
+   
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         body { background-color: #0f172a; color: #f8fafc; display: flex; flex-direction: column; min-height: 100vh; }
         header { background: #1e293b; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
@@ -38,10 +90,17 @@
 
     <div class="main-container">
         <div class="player-section">
-            <video id="mainPlayer" controls poster="https://via.placeholder.com/800x450?text=%D8%A7%D8%AE%D8%AA%D8%B1+%D8%AD%D9%84%D9%82%D8%A9">
-                <source id="videoSource" src="" type="video/mp4">
-                متصفحك لا يدعم مشغل الفيديو.
-            </video>
+<div class="video-wrapper">
+    <video id="mainPlayer" controls poster="https://via.placeholder.com/800x450?text=%D8%A7%D8%AE%D8%AA%D8%B1+%D8%AD%D9%84%D9%82%D8%A9">
+        <source id="videoSource" src="" type="video/mp4">
+        متصفحك لا يدعم مشغل الفيديو.
+    </video>
+
+    <div class="quality-control">
+        <button id="qualityBtn" type="button">⚙️ الجودة</button>
+        <div id="qualityMenu" class="quality-menu"></div>
+    </div>
+</div>
             <div class="video-title" id="currentVideoTitle">اختر حلقة للمشاهدة</div>
         </div>
 
@@ -79,28 +138,66 @@
                         <div class="series-name">${ep.series_name}</div>
                     </div>
                 `;
-                card.onclick = () => playVideo(ep.video_url, ep.title, card);
+                card.onclick = () => playVideo(ep, card);
                 container.appendChild(card);
             });
 
             if(episodes.length > 0) {
-                playVideo(episodes[0].video_url, episodes[0].title, container.children[0]);
+                playVideo(episodes[0], container.children[0]);
             }
         }
 
-        function playVideo(url, title, cardElement) {
-            const player = document.getElementById('mainPlayer');
-            const source = document.getElementById('videoSource');
-            const titleElem = document.getElementById('currentVideoTitle');
+function playVideo(ep, cardElement) {
+    const player = document.getElementById('mainPlayer');
+    const source = document.getElementById('videoSource');
+    const titleElem = document.getElementById('currentVideoTitle');
+    const qualityBtn = document.getElementById('qualityBtn');
+    const qualityMenu = document.getElementById('qualityMenu');
 
-            document.querySelectorAll('.episode-card').forEach(c => c.classList.remove('active'));
-            if(cardElement) cardElement.classList.add('active');
+    document.querySelectorAll('.episode-card')
+        .forEach(c => c.classList.remove('active'));
 
-            source.src = url;
-            titleElem.textContent = title;
-            player.load();
-            player.play().catch(() => {});
+    if (cardElement) {
+        cardElement.classList.add('active');
+    }
+
+    source.src = ep.video_url;
+    titleElem.textContent = ep.title;
+
+    player.load();
+    player.play().catch(() => {});
+
+    // إنشاء قائمة الجودة
+    qualityMenu.innerHTML = '';
+
+    const qualities = [
+        { name: '720p', url: ep.video_720p },
+        { name: '480p', url: ep.video_480p },
+        { name: '360p', url: ep.video_360p },
+        { name: '240p', url: ep.video_240p }
+    ];
+
+    qualities.forEach(q => {
+        if (q.url) {
+            const button = document.createElement('button');
+            button.textContent = q.name;
+
+            button.onclick = () => {
+                source.src = q.url;
+                player.load();
+                player.play().catch(() => {});
+                qualityMenu.style.display = 'none';
+            };
+
+            qualityMenu.appendChild(button);
         }
+    });
+
+    qualityBtn.onclick = () => {
+        qualityMenu.style.display =
+            qualityMenu.style.display === 'block' ? 'none' : 'block';
+    };
+}
 
         window.onload = loadEpisodes;
     </script>

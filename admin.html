@@ -32,28 +32,8 @@
                 <input type="text" id="epTitle" placeholder="مثال: الحلقة 1" required>
             </div>
             <div class="input-group">
-    <label>رابط الفيديو الأساسي (MP4):</label>
-    <input type="url" id="videoUrl" placeholder="رابط الفيديو الأساسي" required>
-</div>
-
-<div class="input-group">
-    <label>رابط جودة 240p:</label>
-    <input type="url" id="video240p" placeholder="رابط فيديو 240p">
-</div>
-
-<div class="input-group">
-    <label>رابط جودة 360p:</label>
-    <input type="url" id="video360p" placeholder="رابط فيديو 360p">
-</div>
-
-<div class="input-group">
-    <label>رابط جودة 480p:</label>
-    <input type="url" id="video480p" placeholder="رابط فيديو 480p">
-</div>
-            
-    <div class="input-group">
-    <label>رابط جودة 720p:</label>
-    <input type="url" id="video720p" placeholder="رابط فيديو 720p">
+    <label>رابط الفيديو (ملف master.m3u8 للجودات التلقائية، أو MP4):</label>
+    <input type="url" id="videoUrl" placeholder="https://.../ep1/master.m3u8" required>
 </div>
             <div class="input-group">
                 <label>رابط الصورة المصغرة (Thumbnail):</label>
@@ -79,10 +59,6 @@
   const title = document.getElementById('epTitle').value;
   const video_url = document.getElementById('videoUrl').value;
 
-  const video_240p = document.getElementById('video240p').value;
-  const video_360p = document.getElementById('video360p').value;
-  const video_480p = document.getElementById('video480p').value;
-  const video_720p = document.getElementById('video720p').value;
 
   const thumbnail_url = document.getElementById('thumbUrl').value;
 
@@ -93,10 +69,6 @@ try {
             series_name,
             title,
             video_url,
-            video_240p,
-            video_360p,
-            video_480p,
-            video_720p,
             thumbnail_url
         }]);
 

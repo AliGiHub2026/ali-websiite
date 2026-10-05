@@ -4,60 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة المسلسلات القصيرة</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-   <style>
-    .video-wrapper {
-    position: relative;
-}
-
-.quality-control {
-    position: absolute;
-    bottom: 55px;
-    left: 15px;
-    z-index: 10;
-}
-
-#qualityBtn {
-    background: rgba(15, 23, 42, 0.9);
-    color: white;
-    border: 1px solid #475569;
-    border-radius: 8px;
-    padding: 8px 12px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-#qualityBtn:hover {
-    background: #334155;
-}
-
-.quality-menu {
-    display: none;
-    position: absolute;
-    bottom: 45px;
-    left: 0;
-    background: #1e293b;
-    border: 1px solid #475569;
-    border-radius: 8px;
-    min-width: 120px;
-    overflow: hidden;
-}
-
-.quality-menu button {
-    display: block;
-    width: 100%;
-    padding: 9px 12px;
-    background: transparent;
-    color: white;
-    border: none;
-    text-align: center;
-    cursor: pointer;
-}
-
-.quality-menu button:hover {
-    background: #334155;
-}
-   
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.polyfilled.js"></script>
+    <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         body { background-color: #0f172a; color: #f8fafc; display: flex; flex-direction: column; min-height: 100vh; }
         header { background: #1e293b; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
@@ -68,6 +19,7 @@
         
         .player-section { background: #1e293b; border-radius: 12px; padding: 1rem; border: 1px solid #334155; }
         video { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; }
+        .plyr { --plyr-color-main: #38bdf8; border-radius: 8px; }
         .video-title { font-size: 1.25rem; font-weight: bold; margin-top: 1rem; color: #f1f5f9; }
         
         .playlist-section { background: #1e293b; border-radius: 12px; padding: 1rem; border: 1px solid #334155; max-height: 600px; overflow-y: auto; }
@@ -90,17 +42,7 @@
 
     <div class="main-container">
         <div class="player-section">
-<div class="video-wrapper">
-    <video id="mainPlayer" controls poster="https://via.placeholder.com/800x450?text=%D8%A7%D8%AE%D8%AA%D8%B1+%D8%AD%D9%84%D9%82%D8%A9">
-        <source id="videoSource" src="" type="video/mp4">
-        متصفحك لا يدعم مشغل الفيديو.
-    </video>
-
-    <div class="quality-control">
-        <button id="qualityBtn" type="button">⚙️ الجودة</button>
-        <div id="qualityMenu" class="quality-menu"></div>
-    </div>
-</div>
+<div id="playerHolder" dir="ltr"></div>
             <div class="video-title" id="currentVideoTitle">اختر حلقة للمشاهدة</div>
         </div>
 
@@ -132,10 +74,10 @@
                 const card = document.createElement('div');
                 card.className = `episode-card ${index === 0 ? 'active' : ''}`;
                 card.innerHTML = `
-                    <img src="${ep.thumbnail_url || 'https://via.placeholder.com/100x60'}" alt="${ep.title}">
+                    <img src="${ep.thumbnail_url || 'https://via.placeholder.com/100x60'}" alt="${esc(ep.title)}">
                     <div class="episode-info">
-                        <div class="episode-title">${ep.title}</div>
-                        <div class="series-name">${ep.series_name}</div>
+                        <div class="episode-title">${esc(ep.title)}</div>
+                        <div class="series-name">${esc(ep.series_name)}</div>
                     </div>
                 `;
                 card.onclick = () => playVideo(ep, card);
@@ -147,56 +89,75 @@
             }
         }
 
+let hls = null, plyr = null;
+
+function esc(t) {
+    const d = document.createElement('div');
+    d.textContent = t == null ? '' : t;
+    return d.innerHTML;
+}
+
 function playVideo(ep, cardElement) {
-    const player = document.getElementById('mainPlayer');
-    const source = document.getElementById('videoSource');
-    const titleElem = document.getElementById('currentVideoTitle');
-    const qualityBtn = document.getElementById('qualityBtn');
-    const qualityMenu = document.getElementById('qualityMenu');
+    document.querySelectorAll('.episode-card').forEach(c => c.classList.remove('active'));
+    if (cardElement) cardElement.classList.add('active');
+    document.getElementById('currentVideoTitle').textContent = ep.title;
 
-    document.querySelectorAll('.episode-card')
-        .forEach(c => c.classList.remove('active'));
+    // تنظيف المشغّل السابق وإنشاء عنصر فيديو جديد
+    if (hls) { hls.destroy(); hls = null; }
+    if (plyr) { try { plyr.destroy(); } catch (e) {} plyr = null; }
+    const holder = document.getElementById('playerHolder');
+    holder.innerHTML = '<video id="mainPlayer" controls playsinline></video>';
+    const video = document.getElementById('mainPlayer');
+    if (ep.thumbnail_url) video.poster = ep.thumbnail_url;
 
-    if (cardElement) {
-        cardElement.classList.add('active');
+    const opts = {
+        settings: ['quality', 'speed'],
+        ratio: '16:9',
+        i18n: { quality: 'الجودة', speed: 'السرعة', normal: 'عادي', qualityLabel: { 0: 'تلقائي' } }
+    };
+    const url = ep.video_url || '';
+    const start = () => video.play().catch(() => {});
+
+    if (/\.m3u8(\?|$)/i.test(url)) {
+        if (window.Hls && Hls.isSupported()) {
+            hls = new Hls();
+            hls.loadSource(url);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                const heights = [...new Set(hls.levels.map(l => l.height))].sort((a, b) => b - a);
+                plyr = new Plyr(video, {
+                    ...opts,
+                    quality: {
+                        default: 0,
+                        options: [0, ...heights],
+                        forced: true,
+                        onChange: (h) => {
+                            if (h === 0) { hls.currentLevel = -1; return; }
+                            hls.levels.forEach((l, i) => { if (l.height === h) hls.currentLevel = i; });
+                        }
+                    }
+                });
+                start();
+            });
+        } else {
+            // آيفون/سفاري: HLS مدعوم أصلاً (الجودة تلقائية)
+            video.src = url;
+            plyr = new Plyr(video, { ...opts, settings: ['speed'] });
+            start();
+        }
+        return;
     }
 
-    source.src = ep.video_url;
-    titleElem.textContent = ep.title;
-
-    player.load();
-    player.play().catch(() => {});
-
-    // إنشاء قائمة الجودة
-    qualityMenu.innerHTML = '';
-
-    const qualities = [
-        { name: '720p', url: ep.video_720p },
-        { name: '480p', url: ep.video_480p },
-        { name: '360p', url: ep.video_360p },
-        { name: '240p', url: ep.video_240p }
-    ];
-
-    qualities.forEach(q => {
-        if (q.url) {
-            const button = document.createElement('button');
-            button.textContent = q.name;
-
-            button.onclick = () => {
-                source.src = q.url;
-                player.load();
-                player.play().catch(() => {});
-                qualityMenu.style.display = 'none';
-            };
-
-            qualityMenu.appendChild(button);
-        }
-    });
-
-    qualityBtn.onclick = () => {
-        qualityMenu.style.display =
-            qualityMenu.style.display === 'block' ? 'none' : 'block';
-    };
+    // حلقات قديمة: ملفات MP4 منفصلة لكل جودة (تظهر أيضاً داخل ⚙️)
+    const sources = [
+        { src: ep.video_url, size: 1080 }, { src: ep.video_720p, size: 720 },
+        { src: ep.video_480p, size: 480 }, { src: ep.video_360p, size: 360 },
+        { src: ep.video_240p, size: 240 }
+    ].filter(x => x.src).map(x => ({ ...x, type: 'video/mp4' }));
+    plyr = new Plyr(video, { ...opts, quality: { default: sources.length > 1 ? 720 : 1080, options: [1080, 720, 480, 360, 240] } });
+    if (sources.length > 1) plyr.source = { type: 'video', sources };
+    else video.src = url;
+    start();
 }
 
         window.onload = loadEpisodes;

@@ -1,166 +1,234 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة المسلسلات القصيرة</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.polyfilled.js"></script>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-        body { background-color: #0f172a; color: #f8fafc; display: flex; flex-direction: column; min-height: 100vh; }
-        header { background: #1e293b; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
-        header h1 { font-size: 1.5rem; color: #38bdf8; }
-        
-        .main-container { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; padding: 1.5rem; max-width: 1400px; margin: 0 auto; width: 100%; }
-        @media (max-width: 900px) { .main-container { grid-template-columns: 1fr; } }
-        
-        .player-section { background: #1e293b; border-radius: 12px; padding: 1rem; border: 1px solid #334155; }
-        video { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; }
-        .plyr { --plyr-color-main: #38bdf8; border-radius: 8px; }
-        .video-title { font-size: 1.25rem; font-weight: bold; margin-top: 1rem; color: #f1f5f9; }
-        
-        .playlist-section { background: #1e293b; border-radius: 12px; padding: 1rem; border: 1px solid #334155; max-height: 600px; overflow-y: auto; }
-        .playlist-section h3 { margin-bottom: 1rem; color: #94a3b8; font-size: 1rem; }
-        
-        .episode-card { display: flex; gap: 0.75rem; padding: 0.75rem; border-radius: 8px; cursor: pointer; transition: background 0.2s; margin-bottom: 0.5rem; background: #0f172a; }
-        .episode-card:hover, .episode-card.active { background: #334155; }
-        .episode-card img { width: 100px; height: 60px; object-fit: cover; border-radius: 4px; }
-        .episode-info { display: flex; flex-direction: column; justify-content: center; }
-        .episode-title { font-size: 0.9rem; font-weight: 600; color: #e2e8f0; }
-        .series-name { font-size: 0.75rem; color: #38bdf8; margin-top: 0.25rem; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دراما قصيرة</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.polyfilled.js"></script>
+<style>
+:root{--bg:#141414;--surface:#1f1f1f;--surface2:#2a2a2a;--text:#fff;--muted:#b3b3b3;--red:#e50914;--red-d:#b20710}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Cairo',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:inherit;text-decoration:none}
+header{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:.9rem 4%;background:linear-gradient(#000c,#0000);backdrop-filter:blur(6px)}
+.logo{color:var(--red);font-weight:800;font-size:1.7rem;letter-spacing:-.5px}
+header .admin{color:var(--muted);font-size:.9rem}
+header .admin:hover{color:#fff}
+main{padding-bottom:3rem}
+.msg{color:var(--muted);text-align:center;padding:4rem 1rem}
+
+/* ---------- الواجهة 1: المسلسلات ---------- */
+.hero{position:relative;min-height:56vh;display:flex;align-items:flex-end;padding:0 4% 3rem;margin-top:-64px;background:#000 center/cover no-repeat}
+.hero::before{content:"";position:absolute;inset:0;background:linear-gradient(to top,var(--bg) 4%,#14141400 60%),linear-gradient(to left,#000000b3,#0000 70%)}
+.hero>div{position:relative;max-width:560px}
+.hero h2{font-size:clamp(1.8rem,4vw,3rem);font-weight:800;line-height:1.3;margin-bottom:.5rem}
+.hero p{color:#e5e5e5;margin-bottom:1.2rem}
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.6rem;border-radius:4px;font:700 1rem 'Cairo',sans-serif;border:0;cursor:pointer}
+.btn-w{background:#fff;color:#000}.btn-w:hover{background:#ffffffc0}
+.btn-r{background:var(--red);color:#fff}.btn-r:hover{background:var(--red-d)}
+.row-title{font-size:1.3rem;font-weight:700;margin:1.8rem 4% .9rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.9rem;padding:0 4%}
+.card{display:block;border-radius:6px;overflow:hidden;background:var(--surface);transition:transform .2s}
+.card:hover,.card:focus-visible{transform:scale(1.05);outline:2px solid #fff;z-index:2;position:relative}
+.poster{aspect-ratio:2/3;background:linear-gradient(160deg,#3a0a0d,#141414);display:flex;align-items:center;justify-content:center;font-size:3rem;font-weight:800;color:var(--red)}
+.poster img{width:100%;height:100%;object-fit:cover;display:block}
+.card .t{padding:.6rem .7rem .8rem}
+.card .t b{display:block;font-size:.95rem;line-height:1.4}
+.card .t span{color:var(--muted);font-size:.8rem}
+
+/* ---------- الواجهة 2: صفحة المسلسل ---------- */
+.banner{position:relative;margin-top:-64px;padding:7rem 4% 2rem;background:#000 center/cover no-repeat}
+.banner::before{content:"";position:absolute;inset:0;background:linear-gradient(to top,var(--bg),#14141499),linear-gradient(to left,#000000cc,#0000)}
+.banner>div{position:relative;max-width:720px}
+.back{display:inline-block;color:var(--muted);margin-bottom:1rem;font-weight:600}
+.back:hover{color:#fff}
+.banner h1{font-size:clamp(1.6rem,3.5vw,2.6rem);font-weight:800;line-height:1.35;margin-bottom:.6rem}
+.meta{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1.1rem}
+.meta span{background:#ffffff1f;padding:.15rem .8rem;border-radius:4px;font-size:.85rem}
+.meta .hd{border:1px solid #888;background:none}
+.watch{display:grid;grid-template-columns:1fr 340px;gap:1.2rem;padding:0 4%;max-width:1500px;margin:0 auto}
+@media(max-width:900px){.watch{grid-template-columns:1fr}}
+.player-box{background:var(--surface);border-radius:8px;padding:.8rem}
+video{width:100%;aspect-ratio:16/9;background:#000;border-radius:6px}
+.plyr{--plyr-color-main:var(--red);border-radius:6px}
+.video-title{font-size:1.15rem;font-weight:700;margin:.9rem .2rem .2rem}
+.eps{background:var(--surface);border-radius:8px;padding:.8rem;max-height:640px;overflow-y:auto}
+.eps h3{font-size:1.05rem;margin:.1rem .2rem .8rem}
+.ep{display:flex;gap:.75rem;align-items:center;padding:.6rem;border-radius:6px;cursor:pointer;transition:background .15s;border-inline-start:3px solid transparent}
+.ep:hover{background:var(--surface2)}
+.ep.active{background:var(--surface2);border-inline-start-color:var(--red)}
+.ep .n{color:var(--muted);font-size:1.3rem;font-weight:700;min-width:1.6rem;text-align:center}
+.ep .th{width:104px;height:60px;border-radius:4px;object-fit:cover;background:#000;flex:none}
+.ep .tt{font-size:.92rem;font-weight:600}
+</style>
 </head>
 <body>
+<header>
+  <a class="logo" href="#/">دراما قصيرة</a>
+  <a class="admin" href="admin.html">لوحة التحكم</a>
+</header>
+<main id="app"><p class="msg">جاري تحميل المحتوى...</p></main>
 
-    <header>
-        <h1>دراما قصيرة</h1>
-        <a href="admin.html" style="color: #94a3b8; text-decoration: none; font-size: 0.9rem;">لوحة التحكم</a>
-    </header>
-
-    <div class="main-container">
-        <div class="player-section">
-<div id="playerHolder" dir="ltr"></div>
-            <div class="video-title" id="currentVideoTitle">اختر حلقة للمشاهدة</div>
-        </div>
-
-        <div class="playlist-section">
-            <h3>قائمة الحلقات والمسلسلات</h3>
-            <div id="playlistContainer">
-                <p style="color: #64748b; text-align: center;">جاري تحميل المحتوى...</p>
-            </div>
-        </div>
-    </div>
-
-    <script src="config.js"></script>
-    <script>
-        async function loadEpisodes() {
-            const container = document.getElementById('playlistContainer');
-            
-            const { data: episodes, error } = await supabaseClient
-                .from('episodes')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error || !episodes || episodes.length === 0) {
-                container.innerHTML = '<p style="color: #64748b; text-align: center;">لا توجد حلقات معروضة حالياً.</p>';
-                return;
-            }
-
-            container.innerHTML = '';
-            episodes.forEach((ep, index) => {
-                const card = document.createElement('div');
-                card.className = `episode-card ${index === 0 ? 'active' : ''}`;
-                card.innerHTML = `
-                    <img src="${ep.thumbnail_url || 'https://via.placeholder.com/100x60'}" alt="${esc(ep.title)}">
-                    <div class="episode-info">
-                        <div class="episode-title">${esc(ep.title)}</div>
-                        <div class="series-name">${esc(ep.series_name)}</div>
-                    </div>
-                `;
-                card.onclick = () => playVideo(ep, card);
-                container.appendChild(card);
-            });
-
-            if(episodes.length > 0) {
-                playVideo(episodes[0], container.children[0]);
-            }
-        }
-
+<script src="config.js"></script>
+<script>
+const app = document.getElementById('app');
+let SERIES = null;            // [{name, episodes:[...]}]
 let hls = null, plyr = null;
 
-function esc(t) {
-    const d = document.createElement('div');
-    d.textContent = t == null ? '' : t;
-    return d.innerHTML;
+function esc(t){
+  return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+const bg = u => u ? `style="background-image:url('${esc(encodeURI(u))}')"` : '';
+
+/* ---------- جلب البيانات وتجميعها حسب اسم المسلسل ---------- */
+async function loadData(){
+  if (SERIES) return SERIES;
+  const { data, error } = await supabaseClient.from('episodes').select('*').order('created_at', { ascending: true });
+  if (error || !data) { SERIES = []; return SERIES; }
+  const map = new Map();
+  data.forEach(ep => {
+    const name = (ep.series_name || 'بدون اسم').trim();
+    if (!map.has(name)) map.set(name, []);
+    map.get(name).push(ep);
+  });
+  SERIES = [...map].map(([name, episodes]) => {
+    episodes.sort((a, b) => a.title.localeCompare(b.title, 'ar', { numeric: true }));
+    const latest = Math.max(...episodes.map(e => +new Date(e.created_at)));
+    return { name, episodes, latest, poster: (episodes.find(e => e.thumbnail_url) || {}).thumbnail_url || '' };
+  }).sort((a, b) => b.latest - a.latest);
+  return SERIES;
 }
 
-function playVideo(ep, cardElement) {
-    document.querySelectorAll('.episode-card').forEach(c => c.classList.remove('active'));
-    if (cardElement) cardElement.classList.add('active');
-    document.getElementById('currentVideoTitle').textContent = ep.title;
+function stopPlayer(){
+  if (hls) { hls.destroy(); hls = null; }
+  if (plyr) { try { plyr.destroy(); } catch(e){} plyr = null; }
+}
 
-    // تنظيف المشغّل السابق وإنشاء عنصر فيديو جديد
-    if (hls) { hls.destroy(); hls = null; }
-    if (plyr) { try { plyr.destroy(); } catch (e) {} plyr = null; }
-    const holder = document.getElementById('playerHolder');
-    holder.innerHTML = '<video id="mainPlayer" controls playsinline></video>';
-    const video = document.getElementById('mainPlayer');
-    if (ep.thumbnail_url) video.poster = ep.thumbnail_url;
+/* ---------- الواجهة 1: قائمة المسلسلات ---------- */
+function homePage(){
+  stopPlayer();
+  document.title = 'دراما قصيرة';
+  if (!SERIES.length) { app.innerHTML = '<p class="msg">لا توجد مسلسلات معروضة حالياً.</p>'; return; }
+  const f = SERIES[0];
+  app.innerHTML = `
+    <section class="hero" ${bg(f.poster)}>
+      <div>
+        <h2>${esc(f.name)}</h2>
+        <p>${f.episodes.length} حلقة</p>
+        <a class="btn btn-w" href="#/series/${encodeURIComponent(f.name)}/0">▶ شاهد الآن</a>
+      </div>
+    </section>
+    <h2 class="row-title">كل المسلسلات</h2>
+    <div class="grid">${SERIES.map(s => `
+      <a class="card" href="#/series/${encodeURIComponent(s.name)}">
+        <div class="poster">${s.poster ? `<img src="${esc(s.poster)}" alt="" loading="lazy" onerror="this.remove()">` : ''}${s.poster ? '' : esc(s.name.charAt(0))}</div>
+        <div class="t"><b>${esc(s.name)}</b><span>${s.episodes.length} حلقة</span></div>
+      </a>`).join('')}</div>`;
+}
 
-    const opts = {
-        settings: ['quality', 'speed'],
-        ratio: '16:9',
-        i18n: { quality: 'الجودة', speed: 'السرعة', normal: 'عادي', qualityLabel: { 0: 'تلقائي' } }
-    };
-    const url = ep.video_url || '';
-    const start = () => video.play().catch(() => {});
+/* ---------- الواجهة 2: صفحة المسلسل ---------- */
+function seriesPage(name, idx){
+  stopPlayer();
+  const s = SERIES.find(x => x.name === name);
+  if (!s) { app.innerHTML = '<p class="msg">المسلسل غير موجود.</p><p class="msg"><a class="btn btn-r" href="#/">العودة إلى المسلسلات</a></p>'; return; }
+  document.title = s.name + ' - دراما قصيرة';
+  app.innerHTML = `
+    <section class="banner" ${bg(s.poster)}>
+      <div>
+        <a class="back" href="#/">→ كل المسلسلات</a>
+        <h1>${esc(s.name)}</h1>
+        <div class="meta"><span>${s.episodes.length} حلقة</span><span class="hd">دراما قصيرة</span></div>
+      </div>
+    </section>
+    <section class="watch">
+      <div class="player-box">
+        <div id="playerHolder" dir="ltr"></div>
+        <div class="video-title" id="currentVideoTitle"></div>
+      </div>
+      <aside class="eps">
+        <h3>الحلقات (${s.episodes.length})</h3>
+        <div id="epList">${s.episodes.map((ep, i) => `
+          <div class="ep" data-i="${i}">
+            <span class="n">${i + 1}</span>
+            ${ep.thumbnail_url ? `<img class="th" src="${esc(ep.thumbnail_url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
+            <span class="tt">${esc(ep.title)}</span>
+          </div>`).join('')}</div>
+      </aside>
+    </section>`;
+  const open = (i, autoplay) => {
+    document.querySelectorAll('.ep').forEach(c => c.classList.toggle('active', +c.dataset.i === i));
+    history.replaceState(null, '', `#/series/${encodeURIComponent(name)}/${i}`);
+    playVideo(s.episodes[i], autoplay);
+  };
+  document.querySelectorAll('.ep').forEach(c => c.onclick = () => open(+c.dataset.i, true));
+  open(Math.min(Math.max(idx, 0), s.episodes.length - 1), false);
+}
 
-    if (/\.m3u8(\?|$)/i.test(url)) {
-        if (window.Hls && Hls.isSupported()) {
-            hls = new Hls();
-            hls.loadSource(url);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                const heights = [...new Set(hls.levels.map(l => l.height))].sort((a, b) => b - a);
-                plyr = new Plyr(video, {
-                    ...opts,
-                    quality: {
-                        default: 0,
-                        options: [0, ...heights],
-                        forced: true,
-                        onChange: (h) => {
-                            if (h === 0) { hls.currentLevel = -1; return; }
-                            hls.levels.forEach((l, i) => { if (l.height === h) hls.currentLevel = i; });
-                        }
-                    }
-                });
-                start();
-            });
-        } else {
-            // آيفون/سفاري: HLS مدعوم أصلاً (الجودة تلقائية)
-            video.src = url;
-            plyr = new Plyr(video, { ...opts, settings: ['speed'] });
-            start();
-        }
-        return;
+/* ---------- المشغّل (نفس منطقك السابق) ---------- */
+function playVideo(ep, autoplay){
+  document.getElementById('currentVideoTitle').textContent = ep.title;
+  stopPlayer();
+  const holder = document.getElementById('playerHolder');
+  holder.innerHTML = '<video id="mainPlayer" controls playsinline></video>';
+  const video = document.getElementById('mainPlayer');
+  if (ep.thumbnail_url) video.poster = ep.thumbnail_url;
+
+  const opts = {
+    settings: ['quality', 'speed'], ratio: '16:9',
+    i18n: { quality: 'الجودة', speed: 'السرعة', normal: 'عادي', qualityLabel: { 0: 'تلقائي' } }
+  };
+  const url = ep.video_url || '';
+  const start = () => { if (autoplay) video.play().catch(() => {}); };
+
+  if (/\.m3u8(\?|$)/i.test(url)) {
+    if (window.Hls && Hls.isSupported()) {
+      hls = new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        const heights = [...new Set(hls.levels.map(l => l.height))].sort((a, b) => b - a);
+        plyr = new Plyr(video, { ...opts, quality: {
+          default: 0, options: [0, ...heights], forced: true,
+          onChange: h => {
+            if (h === 0) { hls.currentLevel = -1; return; }
+            hls.levels.forEach((l, i) => { if (l.height === h) hls.currentLevel = i; });
+          }
+        }});
+        start();
+      });
+    } else {
+      video.src = url;
+      plyr = new Plyr(video, { ...opts, settings: ['speed'] });
+      start();
     }
+    return;
+  }
 
-    // حلقات قديمة: ملفات MP4 منفصلة لكل جودة (تظهر أيضاً داخل ⚙️)
-    const sources = [
-        { src: ep.video_url, size: 1080 }, { src: ep.video_720p, size: 720 },
-        { src: ep.video_480p, size: 480 }, { src: ep.video_360p, size: 360 },
-        { src: ep.video_240p, size: 240 }
-    ].filter(x => x.src).map(x => ({ ...x, type: 'video/mp4' }));
-    plyr = new Plyr(video, { ...opts, quality: { default: sources.length > 1 ? 720 : 1080, options: [1080, 720, 480, 360, 240] } });
-    if (sources.length > 1) plyr.source = { type: 'video', sources };
-    else video.src = url;
-    start();
+  const sources = [
+    { src: ep.video_url, size: 1080 }, { src: ep.video_720p, size: 720 },
+    { src: ep.video_480p, size: 480 }, { src: ep.video_360p, size: 360 },
+    { src: ep.video_240p, size: 240 }
+  ].filter(x => x.src).map(x => ({ ...x, type: 'video/mp4' }));
+  plyr = new Plyr(video, { ...opts, quality: { default: sources.length > 1 ? 720 : 1080, options: [1080, 720, 480, 360, 240] } });
+  if (sources.length > 1) plyr.source = { type: 'video', sources };
+  else video.src = url;
+  start();
 }
 
-        window.onload = loadEpisodes;
-    </script>
+/* ---------- التنقل بين الواجهتين ---------- */
+async function route(){
+  await loadData();
+  const p = location.hash.replace(/^#\/?/, '').split('/');
+  if (p[0] === 'series' && p[1]) seriesPage(decodeURIComponent(p[1]), parseInt(p[2], 10) || 0);
+  else homePage();
+  window.scrollTo(0, 0);
+}
+addEventListener('hashchange', route);
+route();
+</script>
 </body>
 </html>

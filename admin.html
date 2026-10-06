@@ -19,11 +19,27 @@ button{width:100%;padding:.8rem;background:#e50914;color:#fff;border:none;border
 button:hover{background:#b20710}
 button:disabled{opacity:.6}
 .status{margin-top:1rem;text-align:center;font-size:.9rem}
+.hidden{display:none}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;color:#b3b3b3;font-size:.85rem}
+.top button{width:auto;padding:.35rem .9rem;background:#333;font-size:.85rem}
+.top button:hover{background:#444}
 .home{display:block;text-align:center;margin-top:1.2rem;color:#b3b3b3;text-decoration:none;font-size:.9rem}
 </style>
 </head>
 <body>
-<div class="form-card">
+<div class="form-card" id="loginCard">
+  <h2>تسجيل الدخول</h2>
+  <form id="loginForm">
+    <div class="input-group"><label>البريد الإلكتروني:</label><input type="email" id="email" autocomplete="username" required></div>
+    <div class="input-group"><label>كلمة السر:</label><input type="password" id="password" autocomplete="current-password" required></div>
+    <button type="submit" id="loginBtn">دخول</button>
+  </form>
+  <div id="loginStatus" class="status"></div>
+  <a class="home" href="index.html">← العودة إلى الموقع</a>
+</div>
+
+<div class="form-card hidden" id="panelCard">
+  <div class="top"><span id="who"></span><button type="button" id="logoutBtn">تسجيل الخروج</button></div>
   <h2>إضافة حلقة / مسلسل جديد</h2>
   <form id="addEpisodeForm">
     <div class="input-group">
@@ -51,6 +67,36 @@ button:disabled{opacity:.6}
 
 <script src="config.js"></script>
 <script>
+const loginCard = document.getElementById('loginCard');
+const panelCard = document.getElementById('panelCard');
+
+function showUI(session){
+  loginCard.classList.toggle('hidden', !!session);
+  panelCard.classList.toggle('hidden', !session);
+  if (session) {
+    document.getElementById('who').textContent = session.user.email;
+    loadSeriesNames();
+  }
+}
+
+document.getElementById('loginForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('loginBtn');
+  const st = document.getElementById('loginStatus');
+  btn.disabled = true; st.style.color = '#b3b3b3'; st.textContent = 'جاري التحقق...';
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email: document.getElementById('email').value.trim(),
+    password: document.getElementById('password').value
+  });
+  btn.disabled = false;
+  if (error) { st.style.color = '#ff5a5f'; st.textContent = 'البريد أو كلمة السر غير صحيحة'; }
+  else { st.textContent = ''; document.getElementById('password').value = ''; }
+};
+
+document.getElementById('logoutBtn').onclick = () => supabaseClient.auth.signOut();
+supabaseClient.auth.onAuthStateChange((_event, session) => showUI(session));
+supabaseClient.auth.getSession().then(({ data }) => showUI(data.session));
+
 async function loadSeriesNames(){
   const { data } = await supabaseClient.from('episodes').select('series_name');
   const names = [...new Set((data || []).map(r => r.series_name).filter(Boolean))];
@@ -58,8 +104,6 @@ async function loadSeriesNames(){
     const o = document.createElement('option'); o.value = n; return o.outerHTML;
   }).join('');
 }
-loadSeriesNames();
-
 document.getElementById('addEpisodeForm').onsubmit = async (e) => {
   e.preventDefault();
   const btn = document.getElementById('submitBtn');

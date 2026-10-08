@@ -222,12 +222,25 @@ function playVideo(ep, autoplay){
 async function route(){
   await loadData();
   const p = location.hash.replace(/^#\/?/, '').split('/');
-  if (p[0] === 'series' && p[1]) seriesPage(decodeURIComponent(p[1]), parseInt(p[2], 10) || 0);
-  else homePage();
+  if (p[0] === 'series' && p[1]) {
+    const name = decodeURIComponent(p[1]);
+    seriesPage(name, parseInt(p[2], 10) || 0);
+    track('/series/' + name, name);
+  } else {
+    homePage();
+    track('/', 'الرئيسية');
+  }
   window.scrollTo(0, 0);
+}
+/* عداد الزيارات GoatCounter: يسجل كل فتح للرئيسية أو لصفحة مسلسل */
+function track(path, title){
+  const go = () => window.goatcounter && window.goatcounter.count && window.goatcounter.count({ path, title });
+  if (window.goatcounter && window.goatcounter.count) go();
+  else addEventListener('load', go, { once: true });
 }
 addEventListener('hashchange', route);
 route();
 </script>
+<script data-goatcounter="https://shortflix.goatcounter.com/count" data-goatcounter-settings='{"no_onload":true}' async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>

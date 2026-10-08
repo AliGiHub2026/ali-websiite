@@ -3,30 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة التحكم - إضافة حلقة جديدة</title>
+<title>لوحة التحكم</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Cairo',system-ui,sans-serif}
-body{background:#141414;color:#fff;padding:2rem 1rem;display:flex;justify-content:center}
+body{background:#141414;color:#fff;padding:2rem 1rem;display:flex;flex-direction:column;align-items:center;gap:1.2rem}
 .form-card{background:#1f1f1f;padding:2rem;border-radius:8px;width:100%;max-width:520px}
 h2{margin-bottom:1.5rem;color:#e50914;text-align:center;font-weight:800}
 .input-group{margin-bottom:1.1rem}
 label{display:block;margin-bottom:.4rem;font-size:.9rem;color:#b3b3b3}
-input{width:100%;padding:.75rem;border-radius:4px;border:1px solid #444;background:#333;color:#fff}
-input:focus{outline:2px solid #fff}
+input,select,textarea{width:100%;padding:.75rem;border-radius:4px;border:1px solid #444;background:#333;color:#fff;font-size:1rem}
+textarea{min-height:90px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid #fff}
 button{width:100%;padding:.8rem;background:#e50914;color:#fff;border:none;border-radius:4px;font-weight:700;font-size:1rem;cursor:pointer}
 button:hover{background:#b20710}
 button:disabled{opacity:.6}
 .status{margin-top:1rem;text-align:center;font-size:.9rem}
-.hidden{display:none}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;color:#b3b3b3;font-size:.85rem}
+.hidden{display:none!important}
+.top{display:flex;justify-content:space-between;align-items:center;color:#b3b3b3;font-size:.85rem;width:100%;max-width:520px}
 .top button{width:auto;padding:.35rem .9rem;background:#333;font-size:.85rem}
 .top button:hover{background:#444}
 .home{display:block;text-align:center;margin-top:1.2rem;color:#b3b3b3;text-decoration:none;font-size:.9rem}
+.hint{font-size:.8rem;color:#888;margin-top:.3rem}
 </style>
 </head>
 <body>
+
 <div class="form-card" id="loginCard">
   <h2>تسجيل الدخول</h2>
   <form id="loginForm">
@@ -38,99 +41,159 @@ button:disabled{opacity:.6}
   <a class="home" href="index.html">← العودة إلى الموقع</a>
 </div>
 
-<div class="form-card hidden" id="panelCard">
+<div id="panel" class="hidden" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:1.2rem">
   <div class="top"><span id="who"></span><button type="button" id="logoutBtn">تسجيل الخروج</button></div>
-  <h2>إضافة حلقة / مسلسل جديد</h2>
-  <form id="addEpisodeForm">
-    <div class="input-group">
-      <label>اسم المسلسل (اكتب نفس الاسم لإضافة حلقة لمسلسل موجود):</label>
-      <input type="text" id="seriesName" list="seriesList" placeholder="مثال: طردوها من العائلة" required>
-      <datalist id="seriesList"></datalist>
-    </div>
-    <div class="input-group">
-      <label>عنوان الحلقة:</label>
-      <input type="text" id="epTitle" placeholder="مثال: الحلقة 1" required>
-    </div>
-    <div class="input-group">
-      <label>رابط الفيديو (ملف master.m3u8 للجودات التلقائية، أو MP4):</label>
-      <input type="url" id="videoUrl" placeholder="https://.../ep1/master.m3u8" required>
-    </div>
-    <div class="input-group">
-      <label>رابط الصورة المصغرة (Thumbnail):</label>
-      <input type="url" id="thumbUrl" placeholder="https://domain.com/image.jpg">
-    </div>
-    <button type="submit" id="submitBtn">حفظ ونشر الحلقة</button>
-  </form>
-  <div id="statusMessage" class="status"></div>
-  <a class="home" href="index.html">← العودة إلى الموقع</a>
+
+  <div class="form-card">
+    <h2>إضافة حلقة جديدة</h2>
+    <form id="addEpisodeForm">
+      <div class="input-group">
+        <label>اسم المسلسل (اختره من القائمة لإضافة حلقة لمسلسل موجود):</label>
+        <input type="text" id="seriesName" list="seriesList" placeholder="مثال: طردوها من العائلة" required>
+        <datalist id="seriesList"></datalist>
+      </div>
+      <div class="input-group">
+        <label>عنوان الحلقة:</label>
+        <input type="text" id="epTitle" placeholder="مثال: الحلقة 2" required>
+      </div>
+      <div class="input-group">
+        <label>رابط الفيديو (master.m3u8 أو MP4):</label>
+        <input type="url" id="videoUrl" placeholder="https://.../master.m3u8" required>
+      </div>
+      <div class="input-group">
+        <label>رابط الصورة المصغرة (اختياري):</label>
+        <input type="url" id="thumbUrl" placeholder="https://domain.com/image.jpg">
+      </div>
+      <button type="submit" id="submitBtn">حفظ ونشر الحلقة</button>
+    </form>
+    <div id="statusMessage" class="status"></div>
+  </div>
+
+  <div class="form-card">
+    <h2>وصف المسلسل وتصنيفه</h2>
+    <form id="infoForm">
+      <div class="input-group">
+        <label>المسلسل:</label>
+        <select id="infoSeries" required></select>
+      </div>
+      <div class="input-group">
+        <label>التصنيف:</label>
+        <select id="infoGenre">
+          <option value="">بدون تصنيف</option>
+          <option>دراما</option><option>رومانسي</option><option>انتقام</option><option>أكشن</option>
+          <option>كوميدي</option><option>تشويق</option><option>خيال</option><option>عائلي</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>قصة المسلسل:</label>
+        <textarea id="infoDesc" placeholder="اكتب نبذة قصيرة عن المسلسل"></textarea>
+        <div class="hint">يُطبَّق على كل حلقات المسلسل.</div>
+      </div>
+      <button type="submit" id="infoBtn">حفظ المعلومات</button>
+    </form>
+    <div id="infoStatus" class="status"></div>
+    <a class="home" href="index.html">← العودة إلى الموقع</a>
+  </div>
 </div>
 
 <script src="config.js"></script>
 <script>
-const loginCard = document.getElementById('loginCard');
-const panelCard = document.getElementById('panelCard');
+const $ = id => document.getElementById(id);
+let ROWS = [];
 
-function showUI(session){
-  loginCard.classList.toggle('hidden', !!session);
-  panelCard.classList.toggle('hidden', !session);
-  if (session) {
-    document.getElementById('who').textContent = session.user.email;
-    loadSeriesNames();
-  }
+function norm(t){
+  return String(t || '').replace(/[\u064B-\u065F\u0670\u0640]/g, '')
+    .replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه')
+    .replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
-document.getElementById('loginForm').onsubmit = async (e) => {
+function showUI(session){
+  $('loginCard').classList.toggle('hidden', !!session);
+  $('panel').classList.toggle('hidden', !session);
+  if (session) { $('who').textContent = session.user.email; loadSeries(); }
+}
+
+$('loginForm').onsubmit = async (e) => {
   e.preventDefault();
-  const btn = document.getElementById('loginBtn');
-  const st = document.getElementById('loginStatus');
+  const btn = $('loginBtn'), st = $('loginStatus');
   btn.disabled = true; st.style.color = '#b3b3b3'; st.textContent = 'جاري التحقق...';
   const { error } = await supabaseClient.auth.signInWithPassword({
-    email: document.getElementById('email').value.trim(),
-    password: document.getElementById('password').value
+    email: $('email').value.trim(), password: $('password').value
   });
   btn.disabled = false;
   if (error) { st.style.color = '#ff5a5f'; st.textContent = 'البريد أو كلمة السر غير صحيحة'; }
-  else { st.textContent = ''; document.getElementById('password').value = ''; }
+  else { st.textContent = ''; $('password').value = ''; }
 };
-
-document.getElementById('logoutBtn').onclick = () => supabaseClient.auth.signOut();
-supabaseClient.auth.onAuthStateChange((_event, session) => showUI(session));
+$('logoutBtn').onclick = () => supabaseClient.auth.signOut();
+supabaseClient.auth.onAuthStateChange((_e, session) => showUI(session));
 supabaseClient.auth.getSession().then(({ data }) => showUI(data.session));
 
-async function loadSeriesNames(){
-  const { data } = await supabaseClient.from('episodes').select('series_name');
-  const names = [...new Set((data || []).map(r => r.series_name).filter(Boolean))];
-  document.getElementById('seriesList').innerHTML = names.map(n => {
-    const o = document.createElement('option'); o.value = n; return o.outerHTML;
-  }).join('');
+/* قائمة المسلسلات (تُجمع الأسماء المتشابهة) */
+async function loadSeries(){
+  const { data } = await supabaseClient.from('episodes').select('*');
+  ROWS = data || [];
+  const groups = new Map();
+  ROWS.forEach(r => {
+    if (!r.series_name) return;
+    const k = norm(r.series_name);
+    if (!groups.has(k)) groups.set(k, r.series_name.trim());
+  });
+  const names = [...groups.values()];
+  $('seriesList').innerHTML = names.map(n => { const o = document.createElement('option'); o.value = n; return o.outerHTML; }).join('');
+  $('infoSeries').innerHTML = names.map(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; return o.outerHTML; }).join('');
+  fillInfo();
 }
-document.getElementById('addEpisodeForm').onsubmit = async (e) => {
+
+function fillInfo(){
+  const k = norm($('infoSeries').value);
+  const row = ROWS.find(r => norm(r.series_name) === k && (r.description || r.genre)) || {};
+  $('infoDesc').value = row.description || '';
+  $('infoGenre').value = row.genre || '';
+}
+$('infoSeries').onchange = fillInfo;
+
+$('addEpisodeForm').onsubmit = async (e) => {
   e.preventDefault();
-  const btn = document.getElementById('submitBtn');
-  const status = document.getElementById('statusMessage');
-  btn.disabled = true;
-  status.style.color = '#b3b3b3';
-  status.textContent = 'جاري الحفظ...';
-
-  const series_name = document.getElementById('seriesName').value.trim();
-  const title = document.getElementById('epTitle').value.trim();
-  const video_url = document.getElementById('videoUrl').value;
-  const thumbnail_url = document.getElementById('thumbUrl').value;
-
+  const btn = $('submitBtn'), status = $('statusMessage');
+  btn.disabled = true; status.style.color = '#b3b3b3'; status.textContent = 'جاري الحفظ...';
+  const typed = $('seriesName').value.trim().replace(/\s+/g, ' ');
+  // إن كان الاسم يطابق مسلسلاً موجوداً (مع اختلاف بسيط) نستخدم الاسم الموجود
+  const same = ROWS.find(r => norm(r.series_name) === norm(typed));
+  const row = {
+    series_name: same ? same.series_name : typed,
+    title: $('epTitle').value.trim(),
+    video_url: $('videoUrl').value,
+    thumbnail_url: $('thumbUrl').value
+  };
   try {
-    const { error } = await supabaseClient.from('episodes').insert([{ series_name, title, video_url, thumbnail_url }]);
+    const { error } = await supabaseClient.from('episodes').insert([row]);
     if (error) throw error;
-    status.style.color = '#46d369';
-    status.textContent = 'تم إدراج الحلقة بنجاح!';
-    document.getElementById('addEpisodeForm').reset();
-    loadSeriesNames();
-  } catch (error) {
-    console.error('Supabase error:', error);
-    status.style.color = '#ff5a5f';
-    status.textContent = 'حدث خطأ أثناء الحفظ: ' + (error.message || error);
-  } finally {
-    btn.disabled = false;
-  }
+    status.style.color = '#46d369'; status.textContent = 'تم إدراج الحلقة بنجاح!';
+    $('addEpisodeForm').reset(); loadSeries();
+  } catch (err) {
+    console.error(err);
+    status.style.color = '#ff5a5f'; status.textContent = 'حدث خطأ أثناء الحفظ: ' + (err.message || err);
+  } finally { btn.disabled = false; }
+};
+
+$('infoForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const btn = $('infoBtn'), st = $('infoStatus');
+  btn.disabled = true; st.style.color = '#b3b3b3'; st.textContent = 'جاري الحفظ...';
+  const k = norm($('infoSeries').value);
+  const variants = [...new Set(ROWS.filter(r => norm(r.series_name) === k).map(r => r.series_name))];
+  try {
+    const { error } = await supabaseClient.from('episodes')
+      .update({ description: $('infoDesc').value.trim(), genre: $('infoGenre').value })
+      .in('series_name', variants);
+    if (error) throw error;
+    st.style.color = '#46d369'; st.textContent = 'تم حفظ معلومات المسلسل!';
+    loadSeries();
+  } catch (err) {
+    console.error(err);
+    st.style.color = '#ff5a5f';
+    st.textContent = 'خطأ: ' + (err.message || err) + ' — تأكد أنك شغّلت كود UPGRADE في Supabase.';
+  } finally { btn.disabled = false; }
 };
 </script>
 </body>
